@@ -2,3 +2,6 @@
 
 def main_modify() :
     print("1")
+
+def update_pwd(users) : 
+    print("1")

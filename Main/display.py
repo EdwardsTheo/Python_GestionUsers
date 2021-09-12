@@ -10,7 +10,6 @@ import modify
 def main_display(users) :
 
     print_menu_users()
-
     d_command = input()
 
     while d_command != "3" :
@@ -37,12 +36,18 @@ def display_all(users) : # Display all the users present in the dictionary 'user
 
 def display_login(users) : # Print the users select by the admin 
     pseudo = input("Give the pseudo to receive all the informations of the user \n")
-    key = function.find_key_pseudo(users, pseudo)  # Check is the pseudo exist and return the key 
+    keyF = function.find_key_pseudo(users, pseudo)  # Check is the pseudo exist and return the key 
 
-    if key != False : 
-        print(key, " : ", users[key])
+    if keyF != False : 
+        print("\nInformations about the users : ", pseudo, "\n")
+        for p_id, p_info in users.items(): 
+            for key in p_info:
+                if keyF == p_id :  # To know which id is the user in the dictonary
+                    print(key, " : ", p_info[key]) # Display is info
+
     else :
-        print("\n No user exist with this pseudo ! Please select an existing user")
+        print("\nNo user exist with this pseudo ! Please select an existing user")
+        main_display
 
 
 
