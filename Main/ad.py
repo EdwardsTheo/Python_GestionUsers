@@ -1,14 +1,12 @@
-from user import User #import User from user
+import bcrypt
+from user import User 
+import re
 
-class AD : #Class that contains all the def that are needed in AD
+class AD : # Class that contains all the def that are needed in AD
     path = None
     userlist = []
     last_id = 1
     current_user = None
-
-    def print_all_users (self) : # function that print all users
-        for user in self.userlist :
-            print(user)
 
     def initiate_users (self) : # Function that read every line of the file "user" and initiate them into the code
         file = open(self.path, "r") #open the file
@@ -26,56 +24,160 @@ class AD : #Class that contains all the def that are needed in AD
         self.initiate_users() #start the function initiate users
         self.login() #start the function login
 
-    def add_user (self) : # this function is used to add a user
-        file = open(self.path, "a+")#this open the file and gives us the right to write in it
+############################################ DISPLAY ####################################### 
+    
+    def print_all_users (self) : # function that print all users
+        for user in self.userlist :
+            print(user)
+
+    def display_login(self) : # Print informations for a single users
+        pseudo = input("Give the pseudo to receive all the informations of the user \n")
+        self.find_user(pseudo)
+        
+    def find_user(self, pseudo) : # Find an user with his pseudo
+        for user in self.userlist : 
+            if user.pseudo.find(pseudo) == 0 :
+                print(user)
+                return 
+        print("user doesn't exist") 
+
+############################################ ADD #########################################     
+
+
+    def add_user (self) : # Function to add an user 
+        file = open(self.path, "a+")
         if file : 
-            #The next line is used to get the input from the admin user and put them into "new_user"
-            new_user = User(self.last_id, input("name :"),input("fname :"),input("email :"),input("pseudo :"),input("password :"),input("status :"))
-            new_user.user_id = self.last_id #we get the last_id we added so we know which one the next will get
-            self.last_id += 1 #we give the new user the last id (3 for example +1 )
-            file.write(new_user.format_for_file()) #this is to write a new line with all the informations in the file "users"
-            file.close()#close the file
-            self.userlist.append(new_user) #this add the new_user to the ongoing code 
+        
+            #### Get the input from the admin and check differents conditions to add a new user
+            
+            first_name = input("Enter the first name of the user : ")
+            last_name = input("Enter the last name of the user : ")
+            email = input("Enter the email : ")
+            self.check_email(email)
+            pseudo = input("Enter the pseudo of the user : ")
+            self.check_pseudo(pseudo)
+            passwd = input("Enter the password of the user : ")
+            passwd = self.hash_password(passwd)
+            status = input("Enter the status of the user : ")
 
-    def login(self) : # Main fonction to login the users inside the program 
+            new_user = User(self.last_id, first_name, last_name, email, pseudo, passwd, status)
+            new_user.user_id = self.last_id # Get the id of the last user
+            self.last_id += 1 # Just add one to get the id for the new user
+            file.write(new_user.format_for_file()) 
+            file.close()
+            self.userlist.append(new_user) # Add the new user at the end of the file 
+       
+    
+    def check_email (self, email) :
+        regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'  # Regex to check for the email syntax
+        check = 0
 
-        user = password_check = False #we assign false to user and password_check
+        while check != 2 : 
+            if(re.fullmatch(regex, email)):
+                check += 1
+                check_exist = self.check_existing_email(email)  
+                if check_exist == True : 
+                    break
+            else :
+                print("please select a correct email syntax")
+            check = 0
+            email = input("Enter the email again : ")    
+        return check
 
-        while True : #infinite while
-            while not user : # Check if the pseudo exist 
-                pseudo = input("Enter your pseudo \n") #attribute the input to pseudo variable
-                user = self.check_pseudo(pseudo) #we check the pseudo with the function "check_pseudo" 
-                if not user : #if there is no pseudo in users that correspond to the one entered
+    def check_existing_email(self, email) : # Check if the email is already used by someone 
+        check = True
+        with open('users') as f:
+            if email in f.read():
+                print(email)
+                check = False
+                print("This email is already used !")
+            return check
+        
+    def check_pseudo(self, pseudo) : # Same as the email but for the pseudo
+        check = 0
+        while check != 1 :
+            check_exist = self.check_existing_pseudo(pseudo)
+            if check_exist == True :
+                check += 1 
+            else :
+                pseudo = input("This pseudo is already used please select an other : ")
+    
+    def check_existing_pseudo(self, pseudo) :
+                check = True
+                with open('users') as f:
+                    if pseudo in f.read():
+                        check = False
+                    return check     
+    
+    def hash_password(self, passwd) : # Hash the password for the user
+        passwd = passwd.encode("utf-8")
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(passwd, salt)
+        return hashed
+
+
+############################################ LOGIN #####################################################     
+ 
+    def login(self) : # Main fonction to login the user inside the program 
+
+        user = password_check = False 
+
+        while True : 
+            while not user : 
+                pseudo = input("Enter your pseudo \n") 
+                user = self.check_pseudo(pseudo) # Check if the pseudo exist
+                if not user : 
                     print("Select a existing user ! \n")          
-            count = 3 #count ultil "you are disconnected"
+            count = 3 
 
-            while not password_check and count >= 1 :  # Check if the password exist and count is higher or equal to 1
+            while not password_check and count >= 1 :  # !!!!!!!!!!!!! The password checking phase is not finished !!!!!!!!!
+                print()
                 password = input("Now enter the password \n")
-                password_check = self.check_password(password, user) #we check the password with the function "check_password"
-                if not password_check : #if the password entered isn't right 
-                    count -= 1 #1 less chance of login before you get disconnected
-                    print(f"incorrect password | Try left : {count} ")#print numbers of try left
-            if count == 0 : #if count go to zero then disconnect
+                
+                password_check = self.check_passwd(password) # !!!!!!! Function Not usable !!!!!!!!! Auto login
+                if not password_check : 
+                    count -= 1 
+                    print(f"incorrect password | Try left : {count} ") 
+            if count == 0 : 
                 print("\n~~~~~~~~~~ You are now disconnected ~~~~~~~~~~") 
-                break #break out of the code and get disconnected
+                break 
             self.current_user = user 
-            if user.status.find("admin") == 0 : #if the status of the user is admin then we go to main menu admin 
+            # Check if the user is admin or simple user
+            if user.status.find("admin") == 0 :
                 self.main_menu_admin()
-            else : # else we go to main menu users
+            else : 
                 self.main_menu_users() 
 
             break #exit from the infinite while
 
+    def check_pseudo(self, pseudo) : # Check if the pseudo exist inside the file 
+        for user in self.userlist :
+            if user.pseudo == pseudo :
+                return user
+        return False
+
+    def check_passwd(self, passwd) : # Function to check the password when the user connect !!!!!! NOT FINISHED !!!!!!!!!
+        check = False
+        passwd = passwd.encode("utf-8")
+        salt = bcrypt.gensalt()
+        hashed = bcrypt.hashpw(passwd, salt)
+
+        if bcrypt.checkpw(passwd, hashed):
+            check = True
+        return check
+
+################################################### MENU ############################################################
+
     def main_menu_users(self): # Menu controller for a simple user
         print("Welcome to the users interface !")
         
-        while True : # While loop to keep the user in the program | redirect to other functions
-            self.show_menu_user() #use the function show menu user  
-            command = input() # menu variable to choose where to go
+        while True : # While loop to keep the user in the program 
+            self.show_menu_user() # Print the menu  
+            command = input() # Input from user to select an action
             if command == "1" : 
                 self.display_current_user()  
             elif command == "2" :
-                modify.update_password()
+                modify.update_password() # TODO
             elif command == "0" :
                 print ("Good bye ;)")
                 break
@@ -85,20 +187,20 @@ class AD : #Class that contains all the def that are needed in AD
     def display_current_user (self) : #display the current user
         print(self.current_user)
 
-    def main_menu_admin(self) :   # Menu controller of an admin  
+    def main_menu_admin(self) :   # Menu controller for the admin
         print("Welcome to your main program !")
         
-        while True : # While loop to keep the user in the program | redirect to other functions
-            self.show_menu_admin() #use the function show menu admin  
-            command = input() # menu variable to choose where to go
+        while True : # While loop to keep the user in the program 
+            self.show_menu_admin() # Print the menu
+            command = input() # Input from user to select an action
             if command == "1" : 
                 self.display_main_display()  
             elif command == "2" :
                 self.add_user()  
             elif command == "3" :
-                delete.main_delete()  
+                delete.main_delete()  # TODO
             elif command == "4" :
-                modify.main_modify()  
+                modify.main_modify()  # TODO
             elif command == "0" :
                 print("Good bye :)")
                 break
@@ -114,27 +216,16 @@ class AD : #Class that contains all the def that are needed in AD
         print("4 : Modify the informations of a user")
         print("0 : Leave the program")
 
-    def show_menu_user(self) : # Display menu for the users 
+    def show_menu_user(self) : # Display menu for the simple users
         print("\n")
         print("Please enter a number to select an action :")
         print("1 : Display my informations")
         print("2 : Update my password")
         print("0 : Leave the program")
 
-    def check_pseudo(self, pseudo) : # used to check pseudo
-        for user in self.userlist :
-            if user.pseudo == pseudo :
-                return user
-        return False
-
-    def check_password(self, password, user) : # used to check password
-        if user.password == password :
-            return True
-        return False
-
-    def display_main_display(self) : # main display menu
-        self.print_menu_users() #print menu users
-        d_command = input() # menu variable to choose where to go
+    def display_main_display(self) : # Main display menu
+        self.print_menu_users() 
+        d_command = input() 
 
         while d_command != "3" : 
             if d_command == "1" : 
@@ -145,19 +236,8 @@ class AD : #Class that contains all the def that are needed in AD
             self.print_menu_users()
             d_command = input()
             
-    def print_menu_users(self) :#print menu users
+    def print_menu_users(self) : # Display menu
         print("\n")
         print("1 : Display all users")
         print("2 : Display user by login")
         print("3 : Return to main menu")
-
-    def display_login(self) : # Print the users select by the admin 
-        pseudo = input("Give the pseudo to receive all the informations of the user \n")
-        self.find_user(pseudo)
-        
-    def find_user(self, pseudo) : # used to find a user with is pseudo in the code
-        for user in self.userlist : 
-            if user.pseudo.find(pseudo) == 0 :
-                print(user)
-                return 
-        print("user doesn't exist") 
