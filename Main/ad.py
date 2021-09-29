@@ -88,7 +88,6 @@ class AD : # Class that contains all the def that are needed in AD
         check = True
         with open('users') as f:
             if email in f.read():
-                print(email)
                 check = False
                 print("This email is already used !")
             return check
@@ -113,57 +112,77 @@ class AD : # Class that contains all the def that are needed in AD
         passwd = passwd.encode("utf-8")
         salt = bcrypt.gensalt()
         hashed = bcrypt.hashpw(passwd, salt)
+        hashed = hashed.decode("utf-8")
         return hashed
 
+############################################ MODIFIY ###################################################
+# Enter code here for modify function
 
+############################################ DELETE ####################################################
+
+# Enter code here for delete function
 ############################################ LOGIN #####################################################     
  
     def login(self) : # Main fonction to login the user inside the program 
 
         user = password_check = False 
 
-        while True : 
-            while not user : 
-                pseudo = input("Enter your pseudo \n") 
-                user = self.check_pseudo(pseudo) # Check if the pseudo exist
-                if not user : 
-                    print("Select a existing user ! \n")          
-            count = 3 
-
-            while not password_check and count >= 1 :  # !!!!!!!!!!!!! The password checking phase is not finished !!!!!!!!!
-                print()
-                password = input("Now enter the password \n")
-                
-                password_check = self.check_passwd(password) # !!!!!!! Function Not usable !!!!!!!!! Auto login
-                if not password_check : 
-                    count -= 1 
-                    print(f"incorrect password | Try left : {count} ") 
-            if count == 0 : 
-                print("\n~~~~~~~~~~ You are now disconnected ~~~~~~~~~~") 
-                break 
-            self.current_user = user 
-            # Check if the user is admin or simple user
-            if user.status.find("admin") == 0 :
-                self.main_menu_admin()
-            else : 
-                self.main_menu_users() 
-
-            break #exit from the infinite while
+        while not user : 
+            pseudo = input("Enter your pseudo \n") 
+            user = self.check_pseudo(pseudo) # Check if the pseudo exist
+            if not user : 
+                print("Select a existing user ! \n")          
+            
+        count = 3 
+        while True :  
+            print()
+            password = input("Now enter the password \n")
+            id = self.find_id_user(pseudo)
+            passwd = self.find_existing_passwd(id)
+            password_check = self.check_passwd(password, passwd) 
+            if password_check :
+                break
+            else :
+                print("Wrong password " + str(count -1) + " more try")
+                count -= 1  
+            if count == 0 :
+                quit()
+        
+        self.current_user = user 
+        # Check if the user is admin or simple user
+        if user.status.find("admin") == 0 :
+            self.main_menu_admin()
+        else : 
+            self.main_menu_users() 
 
     def check_pseudo(self, pseudo) : # Check if the pseudo exist inside the file 
         for user in self.userlist :
             if user.pseudo == pseudo :
                 return user
         return False
+    
+    def find_id_user(self, pseudo) :
+        with open('users') as f:
+            lines = f.read().splitlines()
+        i = 0
+        for element in lines :
+            if pseudo in element :
+                break
+            i += 1 
+        return i
 
-    def check_passwd(self, passwd) : # Function to check the password when the user connect !!!!!! NOT FINISHED !!!!!!!!!
-        check = False
-        passwd = passwd.encode("utf-8")
-        salt = bcrypt.gensalt()
-        hashed = bcrypt.hashpw(passwd, salt)
+    def find_existing_passwd(self, id) :
+        a_file = open("users")
+        line_to_read = [id]
+        for position, line in enumerate(a_file):
+            if position in line_to_read:
+                line_file = line
 
-        if bcrypt.checkpw(passwd, hashed):
-            check = True
+        li = list(line_file.split(";"))
+        return li[5]
+
+    def check_passwd(self, passwd, hashed) : 
+        check = bcrypt.checkpw(passwd.encode("utf-8"), hashed.encode("utf-8"))
         return check
 
 ################################################### MENU ############################################################
