@@ -18,6 +18,7 @@ class AD : # Class that contains all the def that are needed in AD
             self.last_id = int(user_info[0])+1 #this is to get the id
             line = file.readline()#apply the line so it will stop the while after we read every line
         file.close() #close the file
+        return self.userlist
 
     def __init__ (self, path) : #This is the first thing that class AD does it starts everything in this function
         self.path = path #make the path known
@@ -37,9 +38,9 @@ class AD : # Class that contains all the def that are needed in AD
     def find_user(self, pseudo) : # Find an user with his pseudo
         for user in self.userlist : 
             if user.pseudo.find(pseudo) == 0 :
-                print(user)
                 return 
-        print("user doesn't exist") 
+            else :
+                print("user doesn't exist") 
 
 ############################################ ADD #########################################     
 
@@ -55,7 +56,7 @@ class AD : # Class that contains all the def that are needed in AD
             email = input("Enter the email : ")
             self.check_email(email)
             pseudo = input("Enter the pseudo of the user : ")
-            self.check_pseudo(pseudo)
+            pseudo = self.check_pseudo_loop(pseudo)
             passwd = input("Enter the password of the user : ")
             passwd = self.hash_password(passwd)
             status = input("Enter the status of the user : ")
@@ -92,22 +93,6 @@ class AD : # Class that contains all the def that are needed in AD
                 print("This email is already used !")
             return check
         
-    def check_pseudo(self, pseudo) : # Same as the email but for the pseudo
-        check = 0
-        while check != 1 :
-            check_exist = self.check_existing_pseudo(pseudo)
-            if check_exist == True :
-                check += 1 
-            else :
-                pseudo = input("This pseudo is already used please select an other : ")
-    
-    def check_existing_pseudo(self, pseudo) :
-                check = True
-                with open('users') as f:
-                    if pseudo in f.read():
-                        check = False
-                    return check     
-    
     def hash_password(self, passwd) : # Hash the password for the user
         passwd = passwd.encode("utf-8")
         salt = bcrypt.gensalt()
@@ -115,10 +100,60 @@ class AD : # Class that contains all the def that are needed in AD
         hashed = hashed.decode("utf-8")
         return hashed
 
+    def check_pseudo_loop(self, pseudo) :
+        check = False
+        while check != True :
+            user = self.check_pseudo(pseudo)
+            if user : 
+                print("This pseudo is already taken, choose an other !")  
+                pseudo = input()
+            else :
+                check = True
+        return pseudo 
+                
+
+
 ############################################ MODIFIY ###################################################
 # Enter code here for modify function
 
 ############################################ DELETE ####################################################
+    
+    def main_delete(self, pseudo) :
+        pseudo_delete = input("Enter the pseudo to delete all the informations about the user \n")
+        line_id = self.find_line_user(pseudo_delete)
+        if line_id != False : 
+            if pseudo == pseudo_delete :
+                print("Did you really just try to delete yourself ?")
+            else :
+                print("\n User deleted")
+                self.delete_pseudo_line(line_id)
+        else :
+            print("Select an existing pseudo !")
+    def delete_pseudo_line(self, line_id) :
+        print(line_id)
+        a_file = open("users", "r")
+        lines = a_file.readlines()
+        a_file.close()
+        
+        del lines[line_id]
+        new_file = open("users", "w+")
+        
+        for line in lines:
+            new_file.write(line)
+
+        new_file.close()
+
+    def find_line_user(self, pseudo):
+        i = 0
+        check = False
+        userlist = self.initiate_users()
+        for user in userlist :
+            if user.pseudo == pseudo :
+                check = i
+                break
+            i +=1
+        return check
+        
 
 # Enter code here for delete function
 ############################################ LOGIN #####################################################     
@@ -151,7 +186,7 @@ class AD : # Class that contains all the def that are needed in AD
         self.current_user = user 
         # Check if the user is admin or simple user
         if user.status.find("admin") == 0 :
-            self.main_menu_admin()
+            self.main_menu_admin(pseudo)
         else : 
             self.main_menu_users() 
 
@@ -206,7 +241,7 @@ class AD : # Class that contains all the def that are needed in AD
     def display_current_user (self) : #display the current user
         print(self.current_user)
 
-    def main_menu_admin(self) :   # Menu controller for the admin
+    def main_menu_admin(self, pseudo) :   # Menu controller for the admin
         print("Welcome to your main program !")
         
         while True : # While loop to keep the user in the program 
@@ -217,7 +252,7 @@ class AD : # Class that contains all the def that are needed in AD
             elif command == "2" :
                 self.add_user()  
             elif command == "3" :
-                delete.main_delete()  # TODO
+                self.main_delete(pseudo)  # TODO
             elif command == "4" :
                 modify.main_modify()  # TODO
             elif command == "0" :
