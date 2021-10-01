@@ -1,9 +1,10 @@
 from os import close
-import bcrypt
+from colorama import init, deinit 
 from user import User 
-import re
 from getpass import getpass
-import readline
+import readline, re, bcrypt
+import sys
+from colors import color
 
 class AD : # Class that contains all the def that are needed in AD
     path = None
@@ -30,12 +31,20 @@ class AD : # Class that contains all the def that are needed in AD
 
 ############################################ DISPLAY ####################################### 
     
+    def print_menu_users(self) : # Display menu
+        print("\n")
+        color.main("\n ********* Display Menu ********** \n")
+        color.prompt("1 : Display all users")
+        color.prompt("2 : Display user by login")
+        color.prompt("3 : Return to main menu")
+
     def print_all_users (self) : # function that print all users
         for user in self.userlist :
             print(user)
 
     def display_login(self) : # Print informations for a single users
-        pseudo = input("Give the pseudo to receive all the informations of the user \n")
+        color.prompt("\n Give the pseudo to receive all the informations of the user \n")
+        pseudo = input("Pseudo   :    ")
         self.find_user(pseudo)
         
     def find_user(self, pseudo) : # Find an user with his pseudo
@@ -43,27 +52,31 @@ class AD : # Class that contains all the def that are needed in AD
             if user.pseudo.find(pseudo) == 0 :
                 return 
             else :
-                print("user doesn't exist") 
+                color.warning("!!!!!! User doesn't exist !!!!! ") 
 
 ############################################ ADD #########################################     
 
 
     def add_user (self) : # Function to add an user 
+        color.main("\n *********** ADD MENU ************** \n")
         file = open(self.path, "a+")
         if file : 
         
-            #### Get the input from the admin and check differents conditions to add a new user
+            #### Get the input from the admin and check differents conditions to add a new user, STRIP to erase blank spaces given by the user
             
-            first_name = input("Enter the first name of the user : ").strip
-            last_name = input.upper("Enter the last name of the user : ").strip
-            email = input("Enter the email : ").strip
+            first_name = input("Enter the first name of the user   :   ").strip()
+            last_name = input("Enter the last name of the user   :   ").strip()
+            last_name = last_name.upper()
+            email = input("Enter the email : ").strip()
             self.check_email(email)
-            pseudo = input("Enter the pseudo of the user : ").strip
+            pseudo = input("Enter the pseudo of the user   :   ").strip()
             pseudo = self.check_pseudo_loop(pseudo)
-            passwd = getpass("Enter the password of the user : \n Remember the Rules : Lenght superior to 8, one capital and small caps, a number and one special char").strip
+            color.warning("****** Remember the Rules : Lenght superior to 8, one capital and small caps, a number and one special char ****** ")
+            passwd = getpass("Enter the password of the user   :    \n")
+            passwd = passwd.strip()
             passwd = self.check_password(passwd)
             passwd = self.hash_password(passwd)
-            status = input("Enter the status of the user : ").strip
+            status = input("Enter the status of the user   :    ").strip()
 
             new_user = User(self.last_id, first_name, last_name, email, pseudo, passwd, status)
             new_user.user_id = self.last_id # Get the id of the last user
@@ -71,6 +84,8 @@ class AD : # Class that contains all the def that are needed in AD
             file.write(new_user.format_for_file()) 
             file.close()
             self.userlist.append(new_user) # Add the new user at the end of the file 
+
+            color.success("The user as been added to the system ! ")
        
     
     def check_email (self, email) :
@@ -84,9 +99,9 @@ class AD : # Class that contains all the def that are needed in AD
                 if check_exist == True : 
                     break
             else :
-                print("please select a correct email syntax")
+                color.warning("\n !!!!! Please select a correct email syntax !!!!!!")
             check = 0
-            email = input("Enter the email again : ").strip    
+            email = input("Enter the email again   :   ").strip()    
         return check
 
     def check_existing_email(self, email) : # Check if the email is already used by someone 
@@ -94,7 +109,7 @@ class AD : # Class that contains all the def that are needed in AD
         with open('users') as f:
             if email in f.read():
                 check = False
-                print("This email is already used !")
+                color.warning("\n !!!!!! This email is already used !!!!!!! ")
             return check
         
     def hash_password(self, passwd) : # Hash the password for the user
@@ -109,8 +124,8 @@ class AD : # Class that contains all the def that are needed in AD
         while check != True :
             user = self.check_pseudo(pseudo)
             if user : 
-                print("This pseudo is already taken, choose an other !")  
-                pseudo = input().strip
+                color.warning("\n !!!!!!! This pseudo is already taken !!!!!! ")  
+                pseudo = input("Pseudo   :   ").strip()
             else :
                 check = True
         return pseudo 
@@ -120,33 +135,28 @@ class AD : # Class that contains all the def that are needed in AD
         pseudo = first_l + name 
         return pseudo
 
-    def check_password(self, password) :
-        check = 0
-        while True:  
+    def check_password(self, password) : # Function to check is the password 
+        check = False
+        while check is False:  
             if (len(password)<8):
-                check = -1
                 break
             elif not re.search("[a-z]", password):
-                check = -1
                 break
             elif not re.search("[A-Z]", password):
-                check = -1
                 break
             elif not re.search("[0-9]", password):
-                check = -1
                 break
             elif not re.search("[_@$]", password):
-                check = -1
                 break
             elif re.search("\s", password):
-                check = -1
                 break
             else:
-                check = 0
+                check = True
                 print("Valid Password")
                 break
-        if check == -1:
-            password = getpass("Not a Valid Password, select an other one").strip
+        if check is False:
+            color.warning("Not a Valid Password, select an other one\nRemember the Rules : Lenght superior to 8, one capital and small caps, a number and one special char : ")
+            password = getpass("Password : ").strip()
         else :
             return password
 
@@ -154,94 +164,138 @@ class AD : # Class that contains all the def that are needed in AD
 ############################################ MODIFIY ###################################################
 
     def main_modify(self) : 
-        pseudo_modify = input("Please select the pseudo of the user to modify is informations \n").strip
+
+        color.main("\n *********** MODIFY MENU ************** \n")
+
+        pseudo_modify = input("Please select the pseudo of the user to modify is informations \n").strip()
         user = self.check_pseudo(pseudo_modify)
+
         if not user :
-            print("Please select an existing user")
+            color.warning("Please select an existing user")
         else : 
             check_pwd = False
-            print("If you don't want to change, just press enter \n")
-            fname = self.input_with_prefill("First name of the user : ", user.fname) # First Name 
-            name = self.input_with_prefill("Last name of the user : ", user.name) # Last Name 
+            color.warning("\n ****** If you don't want to change, just press enter to keep the same informations ********* \n")
+            fname = self.input_with_prefill("First name of the user : ", user.fname) 
+            name = self.input_with_prefill("Last name of the user : ", user.name) 
             name = name.upper()
-            email = self.input_with_prefill("Email of the user : ", user.email) # Email
+            
+            email = self.input_with_prefill("Email of the user : ", user.email) 
             if email != user.email : email = self.check_email(email)
-            pseudo = self.input_with_prefill("Pseudo of the user : ", user.pseudo)# Pseudo 
+            
+            pseudo = self.input_with_prefill("Pseudo of the user : ", user.pseudo)
             if pseudo != user.pseudo : pseudo = self.check_pseudo_loop(pseudo)
-            password = getpass("Password of the user : ")# MDP
+            
+            password = getpass("Password of the user : ")
+            password = password.strip()
+            
             if not password : password = user.password
-            else : password = self.hash_password(password)
+            else :
+                password = self.check_password(password) 
+                password = self.hash_password(password)
+            
             status = self.input_with_prefill("Status of the user : ", user.status)# Status
             new_user = User(user.user_id, fname, name, email, pseudo, password, status)
 
-            # Create list with all existing user 
-            list_users = self.file_to_list()
-            # Create new list with new user at the correct position
-            new_users_list = self.new_list(list_users, user.user_id, new_user)
-            # Re write in the files
-            self.print_to_file(new_users_list)
+            list_users = self.file_to_list() # Create list with all existing user 
+            new_users_list = self.new_list(list_users, user.user_id, new_user) # Create new list with new user at the correct position
+            self.print_to_file(new_users_list) # Re write in the files
 
-# Pute the line at the exact place
+            color.success(" \n !!!!!! Succesfully updated !!!!!! \n ")
 
-    def input_with_prefill(self, prompt, text, check_pwd = False):
+    def input_with_prefill(self, prompt, text, check_pwd = False):  # Create an input with prefill informations, check_pwd required only if you want to fill for a pwd
         def hook():
             readline.insert_text(text)
             readline.redisplay()
         readline.set_pre_input_hook(hook)
+        
         if check_pwd : 
             result = getpass(prompt) # MAKE THE PASSWORD INVISIBLE
-        else : result = input(prompt).strip
+        else : result = input(prompt).strip()
+        
         readline.set_pre_input_hook()
         return result
     
-    def file_to_list(self) :
+    def file_to_list(self) :  # Take the input of the file and put it in a list
         a_file = open("users", "r")
         list_users = []
+        
         for line in a_file:
             stripped_line = line.strip()
             line_list = stripped_line.split()
             list_users.append(line_list)
+        
         a_file.close()
         return list_users
     
-    def new_list(self, list_users, id, new_user) :
+    def new_list(self, list_users, id, new_user) : # New list with the user informations changed 
         i = 0 
         id = int(id)
         id = id - 1
+        
         for element in list_users :
             if id == i : 
                 list_users[i][0] = new_user.format_for_file() 
-                list_users[i] = list(map(str.strip, list_users[i]))
+                new_str = list_users[i][0].rstrip()  # Do this to avoid blank lines in file 
+                list_users[i][0] = new_str
             i += 1 
+        
         return list_users
 
-    def print_to_file(self, new_user_list) : 
+    def print_to_file(self, new_user_list) : # Print a list of users in file
         i = 0
         f = open('users', 'r+')
         f.truncate(0)
         a_file = open("users", "w")
+        
         for element in new_user_list:
             elem_to_print = str(element[0])
             a_file.write(elem_to_print + "\n")
             i += 1 
+        
         a_file.close()
-    
+
+        ###################### MODIFY PASSWORD FOR USER ###################################
+
+    def modify_update_password(self, pseudo) :
+
+        color.main("\n *********** MODIFY PASSWORD ************** \n")
+
+        user = self.check_pseudo(pseudo)
+        password = getpass("Enter your new password, Press enter to use the same   :   ")# MDP
+        
+        if not password : password = user.password
+        else :
+            password = self.check_password(password) 
+            password = self.hash_password(password)
+        
+        new_user = User(user.user_id, user.fname, user.name, user.email, pseudo, password, user.status)
+        list_users = self.file_to_list() # Create list with all existing user 
+        new_users_list = self.new_list(list_users, user.user_id, new_user) # Create new list with new user at the correct position
+        self.print_to_file(new_users_list) #Re write in the file
+        
+        color.success("\n !!!!! Your password has been succesfuly updated !!!!!! \n")
+
 
 ############################################ DELETE ####################################################
     
     def main_delete(self, pseudo) :
-        pseudo_delete = input("Enter the pseudo to delete all the informations about the user \n").strip
+
+        color.main("\n *********** DELETE MENU ************** \n")
+
+        pseudo_delete = input("Enter the pseudo to delete all the informations about the user \n").strip()
         line_id = self.find_line_user(pseudo_delete)
+        
         if line_id != False : 
+            
             if pseudo == pseudo_delete :
-                print("Did you really just try to delete yourself ?")
+                color.warning("Did you really just try to delete yourself ?") # Fin fréro, tu es cringe
             else :
-                print("\n User deleted")
+                color.success("\n !!!!!! User deleted !!!!!!! \n")
                 self.delete_pseudo_line(line_id)
         else :
-            print("Select an existing pseudo !")
+            color.warning("\n !!!!!! Select an existing pseudo !!!!!! \n")
     
-    def delete_pseudo_line(self, line_id) :
+    def delete_pseudo_line(self, line_id) : # Delete the line where the user in 
         a_file = open("users", "r")
         lines = a_file.readlines()
         a_file.close()
@@ -254,10 +308,11 @@ class AD : # Class that contains all the def that are needed in AD
 
         new_file.close()
 
-    def find_line_user(self, pseudo):
+    def find_line_user(self, pseudo): # Find in which line of the file the user is 
         i = 0
         check = False
         userlist = self.initiate_users()
+        
         for user in userlist :
             if user.pseudo == pseudo :
                 check = i
@@ -265,32 +320,33 @@ class AD : # Class that contains all the def that are needed in AD
             i +=1
         return check
         
-
-# Enter code here for delete function
 ############################################ LOGIN #####################################################     
  
     def login(self) : # Main fonction to login the user inside the program 
-
+        init()
+        color.main("\n\n ******* WELCOME ! THIS PROGRAM WAS MADE BY LOIEZ-BI AND BAPTISTE ******** \n\n")
         user = password_check = False 
 
         while not user : 
-            pseudo = input("Enter your pseudo \n").strip 
+            pseudo = input("- Enter your pseudo to login  : ").strip()
             user = self.check_pseudo(pseudo) # Check if the pseudo exist
             if not user : 
-                print("Select a existing user ! \n")          
+                color.warning("\n !!!! Select an existing user !!!!! \n")        
             
         count = 3 
         while True :  
             print()
-            password = getpass("Now enter the password \n")
+            password = getpass("- Enter the password  :  ")
             id = self.find_id_user(pseudo)
             passwd = self.find_existing_passwd(id)
             password_check = self.check_passwd(password, passwd) 
+            
             if password_check :
                 break
             else :
-                print("Wrong password " + str(count -1) + " more try")
+                color.warning("\n !!!!!! Wrong password !!!!!! " + str(count -1) + " more try")
                 count -= 1  
+            
             if count == 0 :
                 quit()
         
@@ -299,7 +355,7 @@ class AD : # Class that contains all the def that are needed in AD
         if user.status.find("admin") == 0 :
             self.main_menu_admin(pseudo)
         else : 
-            self.main_menu_users() 
+            self.main_menu_users(pseudo) 
 
     def check_pseudo(self, pseudo) : # Check if the pseudo exist inside the file 
         for user in self.userlist :
@@ -307,17 +363,18 @@ class AD : # Class that contains all the def that are needed in AD
                 return user
         return False
     
-    def find_id_user(self, pseudo) :
+    def find_id_user(self, pseudo) : # Find the id of the given user  
         for user in self.userlist :
             if user.pseudo == pseudo :
                 return user.user_id
         return False
 
-    def find_existing_passwd(self, id) :
+    def find_existing_passwd(self, id) : # Return the password of the given user 
         a_file = open("users")
         id = int(id)
         id = id - 1
         line_to_read = [id]
+        
         for position, line in enumerate(a_file):
             if position in line_to_read:
                 line_file = line
@@ -325,24 +382,27 @@ class AD : # Class that contains all the def that are needed in AD
         li = list(line_file.split(";"))
         return li[5]
 
-    def check_passwd(self, passwd, hashed) : 
+    def check_passwd(self, passwd, hashed) : # Compare the password given in input with the one existing for the user
         check = bcrypt.checkpw(passwd.encode("utf-8"), hashed.encode("utf-8"))
         return check
 
 ################################################### MENU ############################################################
 
-    def main_menu_users(self): # Menu controller for a simple user
-        print("Welcome to the users interface !")
+    def main_menu_users(self, pseudo): # Menu controller for a simple user
+        color.main("\n\n ********Welcome on the user interface !*********** ")
         
         while True : # While loop to keep the user in the program 
+            color.main("\n *********** MAIN MENU **************")
             self.show_menu_user() # Print the menu  
-            command = input().strip # Input from user to select an action
+            command = input().strip() # Input from user to select an action
+            
             if command == "1" : 
                 self.display_current_user()  
             elif command == "2" :
-                modify.update_password() # TODO
+                self.modify_update_password(pseudo) # TODO
             elif command == "0" :
-                print ("Good bye ;)")
+                color.main("\n ********** Good bye !  ************")
+                deinit()
                 break
             else :
                 print("Choose a valid number !")
@@ -351,11 +411,14 @@ class AD : # Class that contains all the def that are needed in AD
         print(self.current_user)
 
     def main_menu_admin(self, pseudo) :   # Menu controller for the admin
-        print("Welcome to your main program !")
+        color.main("\n\n ********Welcome on the admin interface !*********** ")
+        
         
         while True : # While loop to keep the user in the program 
+            color.main("\n *********** MAIN MENU **************")
             self.show_menu_admin() # Print the menu
-            command = input().strip # Input from user to select an action
+            command = input("\nYour choice   :   ").strip() # Input from user to select an action
+            
             if command == "1" : 
                 self.display_main_display()  
             elif command == "2" :
@@ -364,31 +427,35 @@ class AD : # Class that contains all the def that are needed in AD
                 self.main_delete(pseudo)  # TODO
             elif command == "4" :
                 self.main_modify()  # TODO
+            elif command == "5" :
+                self.modify_update_password(pseudo) # TODO
             elif command == "0" :
-                print("Good bye :)")
+                color.main("\n ********** Good bye !  ************")
+                deinit()
                 break
             else :
                 print("Choose a valid number !")
 
     def show_menu_admin(self) : # Display menu for the admin 
         print("\n")
-        print("Please enter a number to select an action :")
-        print("1 : Display menu")
-        print("2 : Add a user")
-        print("3 : Delete a user")
-        print("4 : Modify the informations of a user")
-        print("0 : Leave the program")
+        color.prompt("Please enter a number to select an action : \n")
+        color.prompt("1 : Display menu")
+        color.prompt("2 : Add a user")
+        color.prompt("3 : Delete a user")
+        color.prompt("4 : Modify the informations of a user")
+        color.prompt("5 : Modify your password")
+        color.prompt("0 : Leave the program")
 
     def show_menu_user(self) : # Display menu for the simple users
         print("\n")
-        print("Please enter a number to select an action :")
-        print("1 : Display my informations")
-        print("2 : Update my password")
-        print("0 : Leave the program")
+        color.prompt("Please enter a number to select an action : \n")
+        color.prompt("1 : Display my informations")
+        color.prompt("2 : Update my password")
+        color.prompt("0 : Leave the program")
 
     def display_main_display(self) : # Main display menu
         self.print_menu_users() 
-        d_command = input().strip
+        d_command = input("\nYour choice   :   ").strip() # Input from user to select an action
 
         while d_command != "3" : 
             if d_command == "1" : 
@@ -397,10 +464,5 @@ class AD : # Class that contains all the def that are needed in AD
                 self.display_login()
 
             self.print_menu_users()
-            d_command = input().strip
+            d_command = input().strip()
             
-    def print_menu_users(self) : # Display menu
-        print("\n")
-        print("1 : Display all users")
-        print("2 : Display user by login")
-        print("3 : Return to main menu")
