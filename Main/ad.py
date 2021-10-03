@@ -2,10 +2,10 @@ from os import close
 from colorama import init, deinit 
 from user import User 
 from getpass import getpass
-# from readline import readline  #### DECOMMENT THIS IF YOU USE LINUX
+# import readline  #### DECOMMENT THIS IF YOU USE LINUX
 import re, bcrypt
-from pyreadline import Readline
-readline = Readline()
+from pyreadline  import Readline; readline = Readline()
+from serial import Serial
 import sys
 from colors import color
 
@@ -138,12 +138,12 @@ class AD : # Class that contains all the def that are needed in AD
                 check = True
         return pseudo 
                 
-    def generate_pseudo(self, fname, name) : # Use this if you want to generate pseudo automaticly 
+    def generate_pseudo(self, fname, name) : # Use this if you want to generate pseudo  
         first_l = fname[0].lower()
         pseudo = first_l + name 
         return pseudo
 
-    def check_password(self, password) : # Function to check is the password 
+    def check_password(self, password) : # Function to check if the password if checking all the rules
         check = False
         while check is False:  
             if (len(password)<8):
@@ -270,7 +270,7 @@ class AD : # Class that contains all the def that are needed in AD
         color.main("\n *********** MODIFY PASSWORD ************** \n")
 
         user = self.check_pseudo(pseudo)
-        password = getpass("Enter your new password, Press enter to use the same   :   ")# MDP
+        password = getpass("Enter your new password, Press enter to use the same   :   ") # MDP
         
         if not password : password = user.password
         else :
@@ -297,7 +297,7 @@ class AD : # Class that contains all the def that are needed in AD
         if line_id != False : 
             
             if pseudo == pseudo_delete :
-                color.warning("Did you really just try to delete yourself ?") # Fin fréro, tu es cringe
+                color.warning("Did you really just try to delete yourself ?") # No explaination here 
             else :
                 color.success("\n !!!!!! User deleted !!!!!!! \n")
                 self.delete_pseudo_line(line_id)
@@ -433,11 +433,11 @@ class AD : # Class that contains all the def that are needed in AD
             elif command == "2" :
                 self.add_user()  
             elif command == "3" :
-                self.main_delete(pseudo)  # TODO
+                self.main_delete(pseudo)  
             elif command == "4" :
-                self.main_modify()  # TODO
+                self.main_modify()  
             elif command == "5" :
-                self.modify_update_password(pseudo) # TODO
+                self.modify_update_password(pseudo) 
             elif command == "0" :
                 color.main("\n ********** Good bye !  ************")
                 deinit()
