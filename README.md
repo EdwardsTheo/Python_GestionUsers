@@ -3,6 +3,7 @@
 # Install requirement before in install.sh !!!!!!!!!!!!!!!!!
 
 # To Launch the program : 
+    cd Main
     python3 Main/main.py
 
 
