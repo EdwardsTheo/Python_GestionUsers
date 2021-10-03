@@ -2,7 +2,10 @@ from os import close
 from colorama import init, deinit 
 from user import User 
 from getpass import getpass
-import readline, re, bcrypt
+#import readline 
+import re, bcrypt
+from pyreadline import Readline
+readline = Readline()
 import sys
 from colors import color
 
@@ -50,9 +53,14 @@ class AD : # Class that contains all the def that are needed in AD
     def find_user(self, pseudo) : # Find an user with his pseudo
         for user in self.userlist : 
             if user.pseudo.find(pseudo) == 0 :
-                return 
-            else :
-                color.warning("!!!!!! User doesn't exist !!!!! ") 
+                print(user)
+                break
+        if user.pseudo.find(pseudo) == 0 :
+            color.prompt("\nUser was found")
+        else :
+            color.prompt("\nUser wasn't found")
+            
+        
 
 ############################################ ADD #########################################     
 
@@ -125,7 +133,7 @@ class AD : # Class that contains all the def that are needed in AD
             user = self.check_pseudo(pseudo)
             if user : 
                 color.warning("\n !!!!!!! This pseudo is already taken !!!!!! ")  
-                pseudo = input("Pseudo   :   ").strip()
+                pseudo = input("pseudo  :").strip()
             else :
                 check = True
         return pseudo 
@@ -146,7 +154,7 @@ class AD : # Class that contains all the def that are needed in AD
                 break
             elif not re.search("[0-9]", password):
                 break
-            elif not re.search("[_@$]", password):
+            elif not re.search("[_@!%&#?*$]", password):
                 break
             elif re.search("\s", password):
                 break
@@ -324,7 +332,7 @@ class AD : # Class that contains all the def that are needed in AD
  
     def login(self) : # Main fonction to login the user inside the program 
         init()
-        color.main("\n\n ******* WELCOME ! THIS PROGRAM WAS MADE BY LOIEZ-BI AND BAPTISTE ******** \n\n")
+        color.main("\n\n ******* WELCOME ! THIS PROGRAM WAS MADE BY LOEIZ-BI AND BAPTISTE ******** \n\n")
         user = password_check = False 
 
         while not user : 
