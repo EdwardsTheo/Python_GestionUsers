@@ -2,7 +2,7 @@ from os import close
 from colorama import init, deinit 
 from user import User 
 from getpass import getpass
-#import readline 
+# from readline import readline  #### DECOMMENT THIS IF YOU USE LINUX
 import re, bcrypt
 from pyreadline import Readline
 readline = Readline()
@@ -16,21 +16,21 @@ class AD : # Class that contains all the def that are needed in AD
     current_user = None
 
     def initiate_users (self) : # Function that read every line of the file "user" and initiate them into the code
-        file = open(self.path, "r") #open the file
-        line = file.readline() #readline assigned to "line"
-        while line : #as long as there is a line to read the while will continue
-            user_info = line.split(";") #we split the data in "users" by ";" and assign it to "user_info"
+        file = open(self.path, "r") # Open the file
+        line = file.readline()
+        while line : 
+            user_info = line.split(";")
             #The next line is used to get informations from the file "users" and make them into an object "User"
             self.userlist.append(User(user_info[0],user_info[1],user_info[2],user_info[3],user_info[4],user_info[5],user_info[6]))
-            self.last_id = int(user_info[0])+1 #this is to get the id
-            line = file.readline()#apply the line so it will stop the while after we read every line
-        file.close() #close the file
+            self.last_id = int(user_info[0])+1 
+            line = file.readline()
+        file.close() 
         return self.userlist
 
-    def __init__ (self, path) : #This is the first thing that class AD does it starts everything in this function
-        self.path = path #make the path known
-        self.initiate_users() #start the function initiate users
-        self.login() #start the function login
+    def __init__ (self, path) : # This is the first thing that class AD does it starts everything in this function
+        self.path = path 
+        self.initiate_users() 
+        self.login()
 
 ############################################ DISPLAY ####################################### 
     
@@ -41,11 +41,11 @@ class AD : # Class that contains all the def that are needed in AD
         color.prompt("2 : Display user by login")
         color.prompt("3 : Return to main menu")
 
-    def print_all_users (self) : # function that print all users
+    def print_all_users (self) : # Function that print all users present in file 
         for user in self.userlist :
             print(user)
 
-    def display_login(self) : # Print informations for a single users
+    def display_login(self) : # Print informations of a single user
         color.prompt("\n Give the pseudo to receive all the informations of the user \n")
         pseudo = input("Pseudo   :    ")
         self.find_user(pseudo)
@@ -88,7 +88,7 @@ class AD : # Class that contains all the def that are needed in AD
 
             new_user = User(self.last_id, first_name, last_name, email, pseudo, passwd, status)
             new_user.user_id = self.last_id # Get the id of the last user
-            self.last_id += 1 # Just add one to get the id for the new user
+            self.last_id += 1 # Just add one to get the id pf the new user
             file.write(new_user.format_for_file()) 
             file.close()
             self.userlist.append(new_user) # Add the new user at the end of the file 
@@ -175,7 +175,7 @@ class AD : # Class that contains all the def that are needed in AD
 
         color.main("\n *********** MODIFY MENU ************** \n")
 
-        pseudo_modify = input("Please select the pseudo of the user to modify is informations \n").strip()
+        pseudo_modify = input("Please select the pseudo of the user to modify is informations   :   ").strip()
         user = self.check_pseudo(pseudo_modify)
 
         if not user :
@@ -183,7 +183,7 @@ class AD : # Class that contains all the def that are needed in AD
         else : 
             check_pwd = False
             color.warning("\n ****** If you don't want to change, just press enter to keep the same informations ********* \n")
-            fname = self.input_with_prefill("First name of the user : ", user.fname) 
+            fname = self.input_with_prefill("First name of the user : ", user.fname, check_pwd) 
             name = self.input_with_prefill("Last name of the user : ", user.name) 
             name = name.upper()
             
@@ -218,7 +218,8 @@ class AD : # Class that contains all the def that are needed in AD
         
         if check_pwd : 
             result = getpass(prompt) # MAKE THE PASSWORD INVISIBLE
-        else : result = input(prompt).strip()
+        else : 
+            result = input(prompt).strip()
         
         readline.set_pre_input_hook()
         return result
@@ -290,7 +291,7 @@ class AD : # Class that contains all the def that are needed in AD
 
         color.main("\n *********** DELETE MENU ************** \n")
 
-        pseudo_delete = input("Enter the pseudo to delete all the informations about the user \n").strip()
+        pseudo_delete = input("Enter the pseudo to delete all the informations about the user    :    ").strip()
         line_id = self.find_line_user(pseudo_delete)
         
         if line_id != False : 
